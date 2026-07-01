@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             //         require base_path('routes/attendence.php');
             //         require base_path('routes/report.php');
             //     });
-            Route::prefix('api/v1')
+            Route::prefix('v1')
                 ->middleware('api') 
                 ->group(function () {
                     require base_path('routes/student.php');
