@@ -13,21 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
-            Route::middleware('v1') 
-                ->prefix('v1')
-                ->group(base_path('routes/student.php'));
-
-            Route::middleware('v1')
-                ->prefix('v1')
-                ->group(base_path('routes/kelas.php'));
-
-            Route::middleware('v1')
-                ->prefix('v1')
-                ->group(base_path('routes/attendence.php'));
-
-            Route::middleware('v1')
-                ->prefix('v1')
-                ->group(base_path('routes/report.php'));
+            Route::prefix('v1')
+                ->group(function () {
+                    require base_path('routes/student.php');
+                    require base_path('routes/kelas.php');
+                    require base_path('routes/attendence.php');
+                    require base_path('routes/report.php');
+                });
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -35,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn(Request $request) => $request->is('api/*'),
         );
     })
     ->create();
