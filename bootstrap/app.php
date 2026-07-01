@@ -13,7 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
-            Route::prefix('v1')
+            // Route::prefix('v1')
+            //     ->group(function () {
+            //         require base_path('routes/student.php');
+            //         require base_path('routes/kelas.php');
+            //         require base_path('routes/attendence.php');
+            //         require base_path('routes/report.php');
+            //     });
+            Route::prefix('api/v1')
+                ->middleware('api') 
                 ->group(function () {
                     require base_path('routes/student.php');
                     require base_path('routes/kelas.php');
