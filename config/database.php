@@ -97,8 +97,10 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+
+            // UBAH BAGIAN INI: Daftarkan endpoint secara eksplisit ke PDO options
             'options' => [
-                'endpoint' => 'ep-dark-dust-ah4r2o8n',
+                'endpoint' => 'ep-dark-dust-ah4r2o8n-pooler',
             ],
         ],
 
