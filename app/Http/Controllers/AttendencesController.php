@@ -96,6 +96,7 @@ class AttendencesController extends Controller {
      * Show the form for editing the specified resource.
      */
     public function edit(string $id) {
+
         //
     }
 
@@ -103,6 +104,21 @@ class AttendencesController extends Controller {
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id) {
+        $attendance = Attendances::find($id);
+
+        if (!$attendance) {
+            return $this->sendErrorResponse('Presensi tidak ditemukan', 404);
+        }
+
+        $request->validate([
+            'status' => 'required|in:hadir,izin,sakit,alpa',
+        ]);
+
+        $attendance->update([
+            'status' => $request->status,
+        ]);
+
+        return $this->sendSuccessResponse('Success', $attendance, 200);
         //
     }
 

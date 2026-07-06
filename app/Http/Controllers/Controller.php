@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Routing\Controller as BaseController;
 
-class Controller extends BaseController
-{
-    protected function sendSuccessResponse($message = 'Success', $data = null, $statusCode = 200)
-    {
+
+class Controller extends BaseController {
+    protected function sendSuccessResponse($message = 'Success', $data = null, $statusCode = 200) {
         return response()->json([
             'status' => 'success',
             'message' => $message,
@@ -15,11 +14,14 @@ class Controller extends BaseController
         ], $statusCode);
     }
 
-    protected function sendErrorResponse($message = 'Error', $statusCode = 500)
-    {
+    protected function sendErrorResponse($message = 'Error', $statusCode = 500) {
         return response()->json([
             'status' => 'error',
             'message' => $message
         ], $statusCode);
+    }
+
+    protected function konversiSatuKomaMath($angka = 0) {
+        return round($angka, 1);
     }
 }

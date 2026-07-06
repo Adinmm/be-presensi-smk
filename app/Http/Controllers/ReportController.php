@@ -34,7 +34,8 @@ class ReportController extends Controller {
             $sakit = $studentAbsences->where('status', 'sakit')->count();
             $alpa = $studentAbsences->where('status', 'alpa')->count();
             $total = $studentAbsences->count();
-            $persentase_kehadiran = $total > 0 ? ($hadir / $total) * 100 : 0;
+            $kehadiran = $total > 0 ? ($hadir / $total) * 100 : 0;
+            $persentase_kehadiran = $this->konversiSatuKomaMath($kehadiran);
 
             return [
                 'id' => $student->id,
@@ -89,30 +90,32 @@ class ReportController extends Controller {
         $alpa = $attendances->where('status', 'alpa')->count();
 
         $highlight = [
-            'total_siswa' => $totalSiswa,
+            'total_siswa' => $this->konversiSatuKomaMath($totalSiswa),
             'total_kelas' => $totalKelas,
-            'hadir' => $hadir,
-            'izin_sakit' => $sakit + $izin,
-            'alpa' => $alpa
+            'hadir' => $this->konversiSatuKomaMath($hadir),
+            'izin_sakit' => $this->konversiSatuKomaMath($sakit + $izin),
+            'alpa' => $this->konversiSatuKomaMath($alpa)
         ];
         $ringkasanStatus = [
             'hadir' => [
-                'jumlah' => $hadir,
-                'persentase' => $hadir > 0 ? ($hadir / $totalSiswa) * 100 : 0
+                'jumlah' => $this->konversiSatuKomaMath($hadir),
+                'persentase' => $this->konversiSatuKomaMath($hadir > 0 ? ($hadir / $totalSiswa) * 100 : 0)
             ],
             'izin' => [
-                'jumlah' => $izin,
-                'persentase' => $izin > 0 ? ($izin / $totalSiswa) * 100 : 0
+                'jumlah' => $this->konversiSatuKomaMath($izin),
+                'persentase' => $this->konversiSatuKomaMath($izin > 0 ? ($izin / $totalSiswa) * 100 : 0)
             ],
             'sakit' => [
-                'jumlah' => $sakit,
-                'persentase' => $sakit > 0 ? ($sakit / $totalSiswa) * 100 : 0
+                'jumlah' => $this->konversiSatuKomaMath($sakit),
+                'persentase' => $this->konversiSatuKomaMath($sakit > 0 ? ($sakit / $totalSiswa) * 100 : 0)
             ],
             'alpa' => [
                 'jumlah' => $alpa,
-                'persentase' => $alpa > 0 ? ($alpa / $totalSiswa) * 100 : 0
+                'persentase' => $this->konversiSatuKomaMath($alpa > 0 ? ($alpa / $totalSiswa) * 100 : 0)
             ]
         ];
+
+        $aktivitasTerbaru = Attendances::with(['student:id,nama_lengkap,nis', 'kelas:id,nama_kelas'])->where('date', 'like', $tanggal . '%')->orderBy('updated_at', 'desc')->latest()->limit(10)->get();
 
         return $this->sendSuccessResponse(
             'Dashboards retrieved successfully',
@@ -120,7 +123,7 @@ class ReportController extends Controller {
                 'highlight' => $highlight,
                 'ringkasan_status' => $ringkasanStatus,
                 'kelas' => $kelas,
-                'aktivitas_terbaru' => $attendances
+                'aktivitas_terbaru' => $aktivitasTerbaru
             ]
         );
     }
