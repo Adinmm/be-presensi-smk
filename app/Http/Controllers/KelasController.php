@@ -97,6 +97,13 @@ class KelasController extends Controller {
      * Remove the specified resource from storage.
      */
     public function destroy(string $id) {
-        //
+        $kelas = Classes::find($id);
+        if (!$kelas) {
+            return $this->sendErrorResponse('Data not found', 404);
+        }
+
+        $kelas->delete();
+
+        return $this->sendSuccessResponse('Delete kelas successfully', null, 200);
     }
 }
