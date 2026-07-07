@@ -16,11 +16,6 @@ class KelasController extends Controller {
             $query->where('tingkat', $kelas);
         })->get();
 
-        if ($data->isEmpty()) {
-            return $this->sendErrorResponse('Kelas tidak ditemukan', 404);
-        }
-
-
         return $this->sendSuccessResponse('Success', $data, 200);
         //
     }

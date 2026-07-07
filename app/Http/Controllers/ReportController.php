@@ -115,7 +115,7 @@ class ReportController extends Controller {
             ]
         ];
 
-        $aktivitasTerbaru = Attendances::with(['student:id,nama_lengkap,nis', 'kelas:id,nama_kelas'])->where('date', 'like', $tanggal . '%')->orderBy('updated_at', 'desc')->latest()->limit(10)->get();
+        $aktivitasTerbaru = Attendances::with(['student:id,nama_lengkap,nis', 'kelas:id,nama_kelas'])->orderBy('updated_at', 'desc')->latest()->limit(10)->get();
 
         return $this->sendSuccessResponse(
             'Dashboards retrieved successfully',
@@ -124,6 +124,61 @@ class ReportController extends Controller {
                 'ringkasan_status' => $ringkasanStatus,
                 'kelas' => $kelas,
                 'aktivitas_terbaru' => $aktivitasTerbaru
+            ]
+        );
+    }
+
+    public function backupData() {
+        $students = Students::with('kelas:id,nama_kelas,tingkat,jurusan')->get();
+        $classes = Classes::all();
+        $attendances = Attendances::with(['student:id,nama_lengkap,nis,jenis_kelamin,no_telepon', 'kelas:id,nama_kelas,tingkat,jurusan'])->get();
+
+        $dataStudents = $students->map(function ($student) {
+            return [
+                'nis' => $student->nis,
+                'nama_lengkap' => $student->nama_lengkap,
+                'jenis_kelamin' => $student->jenis_kelamin,
+                'no_telepon' => $student->no_telepon,
+                'kelas' => $student->kelas->nama_kelas ?? '-',
+                'jurusan' => $student->kelas->jurusan ?? '-',
+                'tingkat' => $student->kelas->tingkat ?? '-'
+            ];
+        });
+
+        // 3. Mapping data Kelas
+        $dataClasses = $classes->map(function ($class) {
+            return [
+                'nama_kelas' => $class->nama_kelas,
+                'jurusan' => $class->jurusan,
+                'tingkat' => $class->tingkat
+            ];
+        });
+
+        // 4. Mapping data Absensi
+        $dataAttendances = $attendances->map(function ($attendance) {
+            return [
+                'tanggal' => $attendance->date,
+                'status' => $attendance->status,
+                'waktu' => $attendance->created_at,
+
+                'siswa' => $attendance->student->nama_lengkap ?? '-',
+                'nis' => $attendance->student->nis ?? '-',
+                'jenis_kelamin' => $attendance->student->jenis_kelamin ?? '-',
+                'no_telepon' => $attendance->student->no_telepon ?? '-',
+
+                'kelas' => $attendance->kelas->nama_kelas ?? '-',
+                'jurusan' => $attendance->kelas->jurusan ?? '-',
+                'tingkat' => $attendance->kelas->tingkat ?? '-'
+            ];
+        });
+
+        // 5. Return Response
+        return $this->sendSuccessResponse(
+            'Backup data retrieved successfully',
+            [
+                'students' => $dataStudents,
+                'classes' => $dataClasses, // Perbaikan: Sebelumnya tertulis ganda ($$dataClasses)
+                'attendances' => $dataAttendances
             ]
         );
     }

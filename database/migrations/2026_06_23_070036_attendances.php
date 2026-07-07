@@ -11,8 +11,8 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('attendances', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('student_id');
-            $table->string('class_id');
+            $table->uuid('student_id');
+            $table->uuid('class_id');
             $table->date('date');
             $table->enum('status', ['hadir', 'izin', 'sakit', 'alpa']);
 

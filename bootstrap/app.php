@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
@@ -13,15 +14,14 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
-            // Route::prefix('v1')
-            //     ->group(function () {
-            //         require base_path('routes/student.php');
-            //         require base_path('routes/kelas.php');
-            //         require base_path('routes/attendence.php');
-            //         require base_path('routes/report.php');
-            //     });
             Route::prefix('v1')
-                ->middleware('api') 
+                ->middleware('api')
+                ->group(function () {
+                    require base_path('routes/auth.php');
+                });
+
+            Route::prefix('v1')
+                ->middleware(['api', 'auth:sanctum'])
                 ->group(function () {
                     require base_path('routes/student.php');
                     require base_path('routes/kelas.php');
@@ -31,11 +31,21 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+         $middleware->encryptCookies(except: [
+        'token', 
+    ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn(Request $request) => $request->is('api/*'),
+            fn(Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+        $exceptions->render(function (\Symfony\Component\Routing\Exception\RouteNotFoundException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthenticated. Token tidak ditemukan atau tidak valid.',
+                    'error' => 'Unauthorized'
+                ], 401);
+            }
+        });
     })
     ->create();

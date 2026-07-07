@@ -21,5 +21,9 @@ class AppServiceProvider extends ServiceProvider {
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+        if (request()->hasCookie('token')) {
+            $token = request()->cookie('token');
+            request()->headers->set('Authorization', 'Bearer ' . $token);
+        }
     }
 }

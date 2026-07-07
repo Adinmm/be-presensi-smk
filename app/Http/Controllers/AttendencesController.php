@@ -25,9 +25,6 @@ class AttendencesController extends Controller {
                 $query->where('status', $status);
             })->latest()->get();
 
-        if ($data->isEmpty()) {
-            return $this->sendErrorResponse('Presensi tidak ditemukan', 404);
-        }
 
         return $this->sendSuccessResponse('Success', $data, 200);
     }

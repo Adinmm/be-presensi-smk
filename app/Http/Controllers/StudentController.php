@@ -25,10 +25,6 @@ class StudentController extends Controller {
             ->latest()
             ->paginate($perPage);
 
-        if ($data->isEmpty()) {
-            return $this->sendErrorResponse('Siswa tidak ditemukan', 404);
-        }
-
         return $this->sendSuccessResponse('Success', [
             'items' => $data->items(),
             'pagination' => [
