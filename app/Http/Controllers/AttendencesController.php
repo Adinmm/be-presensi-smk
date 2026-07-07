@@ -23,7 +23,7 @@ class AttendencesController extends Controller {
                 $query->where('date', $tanggal);
             })->when($status, function ($query) use ($status) {
                 $query->where('status', $status);
-            })->latest()->get();
+            })->orderBy('created_at', 'desc')->latest()->get();
 
 
         return $this->sendSuccessResponse('Success', $data, 200);
