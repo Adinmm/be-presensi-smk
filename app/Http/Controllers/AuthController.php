@@ -74,4 +74,17 @@ class AuthController extends Controller {
         $request->user()->currentAccessToken()->delete();
         return $this->sendSuccessResponse('Logout berhasil', null)->withCookie($cookie);
     }
+
+
+    public function changePassword(Request $request) {
+        $validated = $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return $this->sendSuccessResponse('Password berhasil diubah', null);
+    }
 }
