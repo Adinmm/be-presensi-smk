@@ -50,9 +50,11 @@ class AuthController extends Controller {
             $token,
             0,
             '/',
-            null,
+            'be-presensi-smk.vercel.app',
+            true,
+            true,
             false,
-            true
+            'none'
         );
 
         return $this->sendSuccessResponse('Login berhasil', [
@@ -68,7 +70,7 @@ class AuthController extends Controller {
     }
 
     public function logout(Request $request) {
-        $cookie = Cookie::forget('token', '/');
+        $cookie = Cookie::forget('token', '/', 'be-presensi-smk.vercel.app');
         $request->user()->currentAccessToken()->delete();
         return $this->sendSuccessResponse('Logout berhasil', null)->withCookie($cookie);
     }
