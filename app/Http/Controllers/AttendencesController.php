@@ -83,15 +83,15 @@ class AttendencesController extends Controller {
             }
 
             foreach ($data as $item) {
-                $attendance = Attendances::with('student:id,nama_lengkap')
-                    ->where('student_id', $item['student_id'])
+
+                $exists = Attendances::where('student_id', $item['student_id'])
                     ->where('class_id', $item['class_id'])
                     ->whereDate('date', $item['date'])
-                    ->first();
+                    ->exists();
 
-                if ($attendance) {
+                if ($exists) {
                     return $this->sendErrorResponse(
-                        "Presensi untuk {$attendance->student->nama_lengkap} pada tanggal tersebut sudah ada.",
+                        "Presensi sudah ada pada tanggal tersebut.",
                         409
                     );
                 }
