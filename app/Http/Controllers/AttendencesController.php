@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Attendances;
+use Illuminate\Support\Facades\DB;
+
+use App\Models\IdempotencyKeys as IdempotencyKey;
 
 class AttendencesController extends Controller {
     /**
@@ -40,46 +43,88 @@ class AttendencesController extends Controller {
      * Store a newly created resource in storage.
      */
     public function store(Request $request) {
+        $key = $request->header('Idempotency-Key');
+
+        if (!$key) {
+            return $this->sendErrorResponse(
+                'Idempotency-Key is required',
+                400
+            );
+        }
+
         $request->validate([
-            '*.student_id' => 'required',
-            '*.class_id' => 'required',
-            '*.date' => 'required|date',
-            '*.status' => 'required'
+            '*.student_id' => 'required|exists:students,id',
+            '*.class_id'   => 'required|exists:classes,id',
+            '*.date'       => 'required|date',
+            '*.status'     => 'required',
         ]);
 
         $data = $request->all();
 
         if (empty($data)) {
-            return $this->sendErrorResponse('Data presensi kosong', 400);
+            return $this->sendErrorResponse(
+                'Data presensi kosong',
+                400
+            );
         }
 
-        $studentId = $data[0]['student_id'];
+        return DB::transaction(function () use ($request, $key, $data) {
 
-        $date    = $data[0]['date'];
-        $classId = $data[0]['class_id'];
+            $idempotency = IdempotencyKey::where('user_id', $request->user()->id)
+                ->where('key', $key)
+                ->lockForUpdate()
+                ->first();
 
-        $cekAttendance = Attendances::where('student_id', $studentId)->where('date', $date)
-            ->where('class_id', $classId)
-            ->exists();
+            if ($idempotency) {
+                return response()->json(
+                    json_decode($idempotency->response, true),
+                    200
+                );
+            }
 
-        if ($cekAttendance) {
-            return $this->sendErrorResponse('Presensi untuk kelas ini pada tanggal tersebut sudah ada', 400);
-        }
+            foreach ($data as $item) {
 
-        foreach ($request->all() as $item) {
-            Attendances::create([
-                'student_id' => $item['student_id'],
-                'class_id' => $item['class_id'],
-                'date' => $item['date'],
-                'status' => $item['status'],
+                $exists = Attendances::where('student_id', $item['student_id'])
+                    ->where('class_id', $item['class_id'])
+                    ->whereDate('date', $item['date'])
+                    ->exists();
+
+                if ($exists) {
+                    return $this->sendErrorResponse(
+                        "Presensi siswa dengan ID {$item['student_id']} sudah ada pada tanggal tersebut.",
+                        409
+                    );
+                }
+            }
+            $attendances = [];
+
+            foreach ($data as $item) {
+
+                $attendances[] = Attendances::create([
+                    'student_id' => $item['student_id'],
+                    'class_id'   => $item['class_id'],
+                    'date'       => $item['date'],
+                    'status'     => $item['status'],
+                ]);
+            }
+
+            // Response yang akan dikembalikan
+            $response = [
+                'success' => true,
+                'message' => 'Presensi berhasil ditambahkan',
+                'data'    => $attendances,
+            ];
+
+            // Simpan idempotency
+            IdempotencyKey::create([
+                'user_id'  => $request->user()->id,
+                'key'      => $key,
+                'endpoint' => $request->path(),
+                'response' => json_encode($response),
             ]);
-        }
 
-        return $this->sendSuccessResponse(
-            'Presensi berhasil ditambahkan',
-            null,
-            200
-        );
+            return $this->sendSuccessResponse('Presensi berhasil ditambahkan', null, 201);
+        });
     }
 
     /**
