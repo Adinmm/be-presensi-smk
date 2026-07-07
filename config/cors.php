@@ -16,7 +16,8 @@ return [
     // Tulis port Vite Anda secara spesifik di sini (jangan pakai '*')
     'allowed_origins' => [
         'http://localhost:5173', 
-        'http://127.0.0.1:5173'
+        'http://127.0.0.1:5173',
+       ' https://presensi-smk-frontend.vercel.app'
     ],
 
     'allowed_origins_patterns' => [],
